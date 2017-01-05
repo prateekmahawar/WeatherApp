@@ -10,10 +10,10 @@ import UIKit
 import Alamofire
 
 class CurrentWeather {
-    var _cityName: String!
-    var _date: String!
-    var _weatherType: String!
-    var _currentTemp: Double!
+   private var _cityName: String!
+   private var _date: String!
+   private var _weatherType: String!
+   private var _currentTemp: Double!
     
     var cityName: String {
         if _cityName == nil {
@@ -49,42 +49,39 @@ class CurrentWeather {
         return _currentTemp
     }
     
-    func downloadWeatherDetails(completed: DownloadComplete) {
-        //Alamofire download
-        let currentWeatherURL = URL(string: CURRENT_WEATHER_URL)!
+    func downloadWeatherDetails(completed: @escaping DownloadComplete) {
         
-        Alamofire.request(currentWeatherURL).responseJSON { response in
+        Alamofire.request(CURRENT_WEATHER_URL).responseJSON { response in
+            let result = response.result
             
-        let JSON = response.result.value
-            print(JSON)
-            if let dict = response.result.value as? Dictionary<String,AnyObject> {
+            if let dict = result.value as? Dictionary<String, AnyObject> {
                 
                 if let name = dict["name"] as? String {
                     self._cityName = name.capitalized
                     print(self._cityName)
                 }
                 
-                if let weather = dict["weather"] as? [Dictionary<String,AnyObject>] {
+                if let weather = dict["weather"] as? [Dictionary<String, AnyObject>] {
+                    
                     if let main = weather[0]["main"] as? String {
                         self._weatherType = main.capitalized
                         print(self._weatherType)
                     }
+                    
                 }
                 
-                if let main = dict["main"] as? Dictionary<String,AnyObject> {
+                if let main = dict["main"] as? Dictionary<String, AnyObject> {
                     
                     if let currentTemperature = main["temp"] as? Double {
-                        let kelvinToCelsius = currentTemperature - 273.15
-                        let RoundCelsius = String(format: "%.2f", kelvinToCelsius)
-                        self._currentTemp = Double(RoundCelsius)
+                        
+                        let kelvinToCelsius = (currentTemperature - 273.15)
+                        
+                        self._currentTemp = kelvinToCelsius
                         print(self._currentTemp)
                     }
                 }
-                
-                }
             }
             completed()
-            
         }
-        
+    }
 }
